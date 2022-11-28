@@ -106,6 +106,7 @@ class VADayView: UIView {
         
         dateLabel.textColor = dayViewAppearanceDelegate?.textColor?(for: state) ?? dateLabel.textColor
         dateLabel.backgroundColor = dayViewAppearanceDelegate?.textBackgroundColor?(for: state) ?? dateLabel.backgroundColor
+        dateLabel.font = dayViewAppearanceDelegate?.font?(for: state) ?? dateLabel.font
         
         updateSupplementaryViews()
     }

@@ -15,6 +15,7 @@ protocol VACalendarDelegate: class {
 public enum DaysAvailability {
     case all
     case some([Date])
+    case lastAvailableDate(Date)
 }
 
 public class VACalendar {
@@ -72,6 +73,15 @@ public class VACalendar {
             allDays.forEach { $0.setState(.unavailable) }
             let availableDays = dates.flatMap { date in allDays.filter { $0.dateInDay(date) }}
             availableDays.forEach { $0.setState(.available) }
+        case .lastAvailableDate(let date):
+            let allDays = months.flatMap { $0.allDays() }
+            allDays.forEach {
+                if $0.dateInDay(date) || $0.date >= date{
+                    $0.setState(.unavailable)
+                }else{
+                    $0.setState(.available)
+                }
+            }
         }
     }
     
