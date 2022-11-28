@@ -76,10 +76,10 @@ public class VACalendar {
         case .lastAvailableDate(let date):
             let allDays = months.flatMap { $0.allDays() }
             allDays.forEach {
-                if $0.dateInDay(date) || $0.date >= date{
-                    $0.setState(.unavailable)
-                }else{
+                if $0.dateInDay(date) || $0.date < date{
                     $0.setState(.available)
+                }else{
+                    $0.setState(.unavailable)
                 }
             }
         }
