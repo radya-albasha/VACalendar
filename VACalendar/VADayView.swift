@@ -18,6 +18,7 @@ public protocol VADayViewAppearanceDelegate: class {
     @objc optional func borderColor(for state: VADayState) -> UIColor
     @objc optional func dotBottomVerticalOffset(for state: VADayState) -> CGFloat
     @objc optional func shape() -> VADayShape
+    @objc optional func textBackgroundGradient(for state: VADayState) -> CAGradientLayer?
     // percent of the selected area to be painted
     @objc optional func selectedArea() -> CGFloat
 }
@@ -30,7 +31,7 @@ class VADayView: UIView {
     
     var day: VADay
     weak var delegate: VADayViewDelegate?
-    
+    var gradientLayer : CAGradientLayer?
     weak var dayViewAppearanceDelegate: VADayViewAppearanceDelegate? {
         return (superview as? VAWeekView)?.dayViewAppearanceDelegate
     }
@@ -47,6 +48,7 @@ class VADayView: UIView {
     private let dotSize: CGFloat = 5
     private var supplementaryViews = [UIView]()
     private let dateLabel = UILabel()
+    private let dateLabelView = UIView()
     
     init(day: VADay) {
         self.day = day
@@ -81,10 +83,13 @@ class VADayView: UIView {
             width: side,
             height: side
         )
-        dateLabel.center = CGPoint(x: frame.width / 2, y: frame.height / 2)
-
+        dateLabelView.frame = dateLabel.frame
+        dateLabelView.center = CGPoint(x: frame.width / 2, y: frame.height / 2)
+        dateLabel.center = CGPoint(x: dateLabelView.frame.width / 2, y: dateLabelView.frame.height / 2)
+       
         setState(day.state)
-        addSubview(dateLabel)
+        dateLabelView.addSubview(dateLabel)
+        addSubview(dateLabelView)
         updateSupplementaryViews()
     }
     
@@ -98,6 +103,8 @@ class VADayView: UIView {
         if dayViewAppearanceDelegate?.shape?() == .circle && state == .selected {
             dateLabel.clipsToBounds = true
             dateLabel.layer.cornerRadius = dateLabel.frame.height / 2
+            dateLabelView.clipsToBounds = true
+            dateLabelView.layer.cornerRadius = dateLabelView.frame.height / 2
         }
         
         backgroundColor = dayViewAppearanceDelegate?.backgroundColor?(for: state) ?? backgroundColor
@@ -105,7 +112,18 @@ class VADayView: UIView {
         layer.borderWidth = dayViewAppearanceDelegate?.borderWidth?(for: state) ?? dateLabel.layer.borderWidth
         
         dateLabel.textColor = dayViewAppearanceDelegate?.textColor?(for: state) ?? dateLabel.textColor
-        dateLabel.backgroundColor = dayViewAppearanceDelegate?.textBackgroundColor?(for: state) ?? dateLabel.backgroundColor
+        
+        gradientLayer?.removeFromSuperlayer()
+        gradientLayer = dayViewAppearanceDelegate?.textBackgroundGradient?(for: state)
+        if let gradientLayer = self.gradientLayer{
+            dateLabel.backgroundColor = .clear
+            dateLabelView.clipsToBounds = true
+            gradientLayer.bounds = dateLabelView.bounds.insetBy(dx: -0.5*dateLabelView.bounds.size.width, dy: -0.5*dateLabelView.bounds.size.height)
+            gradientLayer.position = dateLabelView.center
+            dateLabelView.layer.insertSublayer(gradientLayer, at: 0)
+        }else{
+            dateLabel.backgroundColor = dayViewAppearanceDelegate?.textBackgroundColor?(for: state) ?? dateLabel.backgroundColor
+        }
         dateLabel.font = dayViewAppearanceDelegate?.font?(for: state) ?? dateLabel.font
         
         updateSupplementaryViews()
@@ -127,8 +145,8 @@ class VADayView: UIView {
                 let stackWidth = CGFloat(colors.count) * dotSpacing + spaceOffset
                 
                 let verticalOffset = dayViewAppearanceDelegate?.dotBottomVerticalOffset?(for: day.state) ?? 2
-                stack.frame = CGRect(x: 0, y: dateLabel.frame.maxY + verticalOffset, width: stackWidth, height: dotSize)
-                stack.center.x = dateLabel.center.x
+                stack.frame = CGRect(x: 0, y: dateLabelView.frame.maxY + verticalOffset, width: stackWidth, height: dotSize)
+                stack.center.x = dateLabelView.center.x
                 addSubview(stack)
                 supplementaryViews.append(stack)
             }
