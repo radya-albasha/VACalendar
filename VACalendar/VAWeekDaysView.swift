@@ -14,6 +14,25 @@ public enum VAWeekDaysSymbolsType {
     
 }
 
+public enum VATextStyle{
+    case capitalized
+    case lowercased
+    case uppercased
+    case defaultLetters
+    
+    func formatedText(name: String) -> String{
+        switch self {
+        case .capitalized:
+            return name.capitalized
+        case .lowercased:
+            return name.lowercased()
+        case .uppercased:
+            return name.uppercased()
+        case .defaultLetters:
+            return name
+        }
+    }
+}
 public struct VAWeekDaysViewAppearance {
     
     let symbolsType: VAWeekDaysSymbolsType
@@ -23,11 +42,13 @@ public struct VAWeekDaysViewAppearance {
     let rightInset: CGFloat
     let separatorBackgroundColor: UIColor
     let calendar: Calendar
+    let weekDayTextStyle:VATextStyle
     
     public init(
         symbolsType: VAWeekDaysSymbolsType = .veryShort,
         weekDayTextColor: UIColor = .black,
         weekDayTextFont: UIFont = UIFont.systemFont(ofSize: 15),
+        weekDayTextStyle:VATextStyle = .defaultLetters,
         leftInset: CGFloat = 10.0,
         rightInset: CGFloat = 10.0,
         separatorBackgroundColor: UIColor = .lightGray,
@@ -39,6 +60,7 @@ public struct VAWeekDaysViewAppearance {
         self.rightInset = rightInset
         self.separatorBackgroundColor = separatorBackgroundColor
         self.calendar = calendar
+        self.weekDayTextStyle = weekDayTextStyle
     }
     
 }
@@ -100,7 +122,7 @@ public class VAWeekDaysView: UIView {
         let names = getWeekdayNames()
         names.enumerated().forEach { index, name in
             let label = UILabel()
-            label.text = name
+            label.text = appearance.weekDayTextStyle.formatedText(name: name)
             label.textAlignment = .center
             label.font = appearance.weekDayTextFont
             label.textColor = appearance.weekDayTextColor
